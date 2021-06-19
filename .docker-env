@@ -1,0 +1,5 @@
+POSTGRES_DB=bhoomi_vivad
+POSTGRES_PASSWORD=sa123 
+POSTGRES_USER=postgres 
+DATABASE_URL=postgres://postgres:sa123@postgres:5432/bhoomi_vivad
+SECRET_KEY=2387427172666813343824717898 

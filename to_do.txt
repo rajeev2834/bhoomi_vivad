@@ -1,0 +1,51 @@
+#start app
+django-admin startproject config
+rename parent config to src
+python manage.py startapp appname
+docker-compose up
+
+or 
+
+docker-compose run django-admin startproject config
+
+docker exec -it postgres_container_name bash
+psql -U postgres 
+
+# 18/03/2020 - 07:30 AM
+--start jupyter notebook instance
+python manage.py shell_plus --notebook
+
+# 18/03/2020 - 01:45 PM
+--database initialization
+python manage.py makemigrations
+python manage.py migrate
+
+#18/03/2020 - 07:15 PM
+--jupyter notebook
+from lettertracking.models import Department,Office,Officer,LetterType,Letter,Assignment
+import os
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"]='true'
+
+manage.py sqlmigrate lettertracking 0001
+manage.py sqlmigrate lettertracking 0002
+
+manage.py squashmigrations lettertracking 0002
+
+#19/03/2020 06:00 AM
+--admin.py
+@admin.register
+prepopulated fields, display fields for all tables, auto primary key, 
+
+--docker
+install, DockerFile, entrypoint, run bat file
+docker-compose up
+docker-compose down -v --rmi local
+install django-environ
+
+#19/03/2020 03:30 PM
+django-cors-headers
+
+
+docker cp E:\Circle.csv bhoomi_vivad_postgres_1:Circle.csv
+
+docker exec 4c2834260111 rm -rf Circle.csv 
