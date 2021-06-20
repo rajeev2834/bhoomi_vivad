@@ -37,3 +37,15 @@ services:
       - "8888:8888"
     volumes:
       - ./src:/app
+
+  react:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    command: ["npm", "start"]
+    ports:
+      - "3000:3000"
+    environment: 
+      - NODE_ENV=development
+    volumes: 
+      - ./frontend/react-app:/usr/src/app

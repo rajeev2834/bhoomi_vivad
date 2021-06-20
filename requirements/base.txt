@@ -8,3 +8,4 @@ pytz==2019.3
 whitenoise==5.0.1
 Pillow==8.1.2
 djangorestframework-gis==0.17
+django-cors-headers==3.7.0
