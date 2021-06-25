@@ -49,3 +49,7 @@ django-cors-headers
 docker cp E:\Circle.csv bhoomi_vivad_postgres_1:Circle.csv
 
 docker exec 4c2834260111 rm -rf Circle.csv 
+
+docker-compose exec -it myservice sh
+
+docker run -it -p 3000:3000 -v /app/node_modules -v $(pwd):/app <your_container_id>

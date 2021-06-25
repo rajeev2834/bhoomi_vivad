@@ -7,6 +7,7 @@ from .views import (
     CreateTokenView,
     CircleApiList,
     CircleApiDetail,
+    Logout,
     PanchayatApiList,
     PanchayatApiDetail,
     MauzaApiList,
@@ -16,6 +17,10 @@ from .views import (
     VivadDetailApiViewSet,
     HearingApiList,
     HearingApiDetail,
+    PlotTypeApiList,
+    PlotTypeApiDetails,
+    PlotNatureApiList,
+    PlotNatureApiDetails,
 )
 
 router = DefaultRouter()
@@ -25,6 +30,7 @@ urlpatterns = [
     path('create/',CreateUserApi.as_view(), name = 'api-create-user'),
     path('manage/',ManageUserApi.as_view(), name = 'api-manage-user'),
     path('token/',CreateTokenView.as_view(), name = 'api-token'),
+    path('logout/', Logout.as_view(), name = 'api-logout'),
     path('circle/', CircleApiList.as_view(), name = 'api-circle-list'),
     path('circle/<slug:pk>/', CircleApiDetail.as_view(), name = 'api-circle-detail'),
     path('panchayat/', PanchayatApiList.as_view(), name = 'api-panchayat-list'),
@@ -35,6 +41,11 @@ urlpatterns = [
     path('thana/<slug:pk>/', ThanaApiDetail.as_view(), name = 'api-thana-detail'),
     path('hearing/', HearingApiList.as_view(), name = 'api-hearing-list'),
     path('hearing/<slug:slug>/', HearingApiDetail.as_view(), name='api-hearing-detail'),
+    path('plot-type/',PlotTypeApiList.as_view(), name ='api-plot_type-list'),
+    path('plot-type/<slug:pk>/', PlotTypeApiDetails.as_view(), name='api-plot_type-detial'),
+    path('plot-nature/',PlotNatureApiList.as_view(), name ='api-plot_nature-list'),
+    path('plot-nature/<slug:pk>/', PlotNatureApiDetails.as_view(), name='api-plot_nature-detial'),
+
 ]
 
 urlpatterns = urlpatterns + router.urls

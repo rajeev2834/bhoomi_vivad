@@ -7,6 +7,7 @@ from rest_framework.serializers import (
 )
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
+from rest_framework.authtoken.models import Token
 
 from .models import (
     Circle,
@@ -15,6 +16,8 @@ from .models import (
     Thana,
     Vivad,
     Hearing,
+    PlotType,
+    PlotNature,
 )
 
 class UserSerializer(ModelSerializer):
@@ -59,6 +62,10 @@ class AuthTokenSerializer(Serializer):
             raise ValidationError(msg, code='authentication')
 
         attrs['user'] = user
+
+        if not attrs:
+            attrs = Token.objects.create(user=user)
+            
         return attrs
 
 class CircleSerializer(ModelSerializer):
@@ -121,6 +128,28 @@ class ThanaSerializer(ModelSerializer):
         model = Thana
         fields = ('circle','thana_name_hn','url',)
         read_only = ('thana_id',)
+
+class PlotTypeSerializer(ModelSerializer):
+
+    url = HyperlinkedIdentityField(
+        view_name = "api-plot_type-detail"
+    )
+
+    class Meta:
+        model = PlotType
+        fields = ('id', 'plot_type', 'url',)
+        read_only = ('id',)
+
+class PlotNatureSerializer(ModelSerializer):
+
+    url = HyperlinkedIdentityField(
+        view_name = "api-plot_nature-detail"
+    )
+
+    class Meta:
+        model = PlotNature
+        fields = ('id', 'plot_nature', 'url',)
+        read_only = ('id',)
 
 
 class VivadSerializer(ModelSerializer):

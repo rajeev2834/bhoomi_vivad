@@ -89,7 +89,31 @@ class Thana(models.Model):
         ordering = ["thana_name_hn"]
 
 
+class PlotType(models.Model):
+    plot_type = models.CharField(max_length=100)
+
+    class Meta:
+        db_table= 'plot_type'
+
+    def __str__(self):
+        return self.plot_type
+
+class PlotNature(models.Model):
+    plot_nature = models.CharField(max_length=50)
+
+    class Meta:
+        db_table= 'plot_nature'
+
+    def __str__(self):
+        return self.plot_nature
+
+
 class Vivad(models.Model):
+    CASE_STATUS =(
+        (0,"Pending"),
+        (1,"Closed"),
+    )
+
     vivad_id = models.CharField(primary_key=True, max_length=12)
     circle = models.ForeignKey(Circle, models.DO_NOTHING, blank=True, null=True)
     panchayat = models.ForeignKey(Panchayat, models.DO_NOTHING, blank=True, null=True)
@@ -97,7 +121,9 @@ class Vivad(models.Model):
     khata_no = models.CharField(max_length=10, blank=True, null=True)
     khesra_no = models.CharField(max_length=10, blank=True, null=True)
     rakwa = models.CharField(max_length=5, blank=True, null=True)
-    plot_type = models.CharField(max_length=50, blank=True, null=True)
+    chauhaddi = models.CharField(max_length=100, blank=True, null=True)
+    plot_type = models.ForeignKey(PlotType, models.DO_NOTHING, blank=True, null=True)
+    plot_nature = models.ForeignKey(PlotNature, models.DO_NOTHING, blank=True, null=True)
     abhidhari_name = models.CharField(max_length=50, blank=True, null=True)
     first_party_name = models.TextField(max_length=50, blank=True)
     first_party_contact = PhoneField(blank=True, help_text='Contact phone number')
@@ -106,8 +132,13 @@ class Vivad(models.Model):
     second_party_contact = PhoneField(blank=True, help_text='Contact phone number')
     second_party_address = models.TextField(max_length=100, blank=True)
     cause_vivad = models.CharField(max_length=200, blank=True, null=True)
+    is_violence = models.BooleanField(max_length=1, default=False, blank=True)
+    violence_detail = models.CharField(max_length=200, blank=True, null=True)
+    is_fir = models.BooleanField(max_length=1, default=False, blank=True)
     notice_order = models.CharField(max_length=200, blank=True, null=True)
-    case_status = models.BooleanField(blank=True)
+    is_courtpending = models.BooleanField(max_length=1, default=False, blank=True)
+    court_status = models.CharField(max_length=200, blank=True, null=True)
+    case_status = models.BooleanField(choices=CASE_STATUS, default=0)
     next_date = models.DateTimeField(blank=True, null=True)
     remarks = models.CharField(max_length=200, blank=True, null=True)
     last_update = models.DateTimeField(blank=True, null=True)

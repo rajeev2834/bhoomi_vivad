@@ -1,11 +1,12 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework import generics, authentication, permissions, status, viewsets
 
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 
 from .models import (
     Circle,
@@ -14,6 +15,8 @@ from .models import (
     Thana,
     Vivad,
     Hearing,
+    PlotType,
+    PlotNature,
 )
 
 from .serializers import (
@@ -26,6 +29,8 @@ from .serializers import (
     VivadSerializer,
     VivadWithDetailSerializer,
     HearingSerilaizer,
+    PlotNatureSerializer,
+    PlotTypeSerializer,
 )
 
 class BaseApiListView(generics.ListCreateAPIView):
@@ -53,6 +58,10 @@ class BaseApiListView(generics.ListCreateAPIView):
                 circle_ids = [str_id for str_id in circle.split(',')]
                 queryset = queryset.filter(circle__circle_id__in=circle_ids)
 
+        is_super = self.request.user.is_superuser
+        if is_super:
+            return queryset.all()
+
         return queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -63,6 +72,10 @@ class BaseApiDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
+        is_super = self.request.user.is_superuser
+        if is_super:
+            return self.queryset.all()
+            
         return self.queryset.filter(user=self.request.user).distinct()
     
     def perform_update(self, serializer):
@@ -83,6 +96,12 @@ class ManageUserApi(generics.RetrieveUpdateAPIView):
 class CreateTokenView(ObtainAuthToken):
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+class Logout(APIView):
+    def get(self, request, format=None):
+        # simply delete the token to force a login
+        request.user.auth_token.delete()
+        return Response(status=status.HTTP_200_OK)
 
 class CircleApiDetail(BaseApiDetailView):
 
@@ -120,6 +139,26 @@ class ThanaApiDetail(BaseApiDetailView):
 
     queryset = Thana.objects.all()
     serializer_class = ThanaSerializer
+
+class PlotTypeApiList(BaseApiListView):
+
+    queryset = PlotType.objects.all()
+    serializer_class = PlotTypeSerializer
+
+class PlotTypeApiDetails(BaseApiDetailView):
+    
+    queryset = PlotType.objects.all()
+    serializer_class = PlotTypeSerializer
+
+class PlotNatureApiList(BaseApiListView):
+
+    queryset = PlotNature.objects.all()
+    serializer_class = PlotNatureSerializer
+
+class PlotNatureApiDetails(BaseApiDetailView):
+
+    queryset = PlotNature.objects.all()
+    serializer_class = PlotNatureSerializer
 
 class VivadDetailApiViewSet(viewsets.ModelViewSet):
 
