@@ -140,22 +140,22 @@ class ThanaApiDetail(BaseApiDetailView):
     queryset = Thana.objects.all()
     serializer_class = ThanaSerializer
 
-class PlotTypeApiList(BaseApiListView):
+class PlotTypeApiList(generics.ListCreateAPIView):
 
     queryset = PlotType.objects.all()
     serializer_class = PlotTypeSerializer
 
-class PlotTypeApiDetails(BaseApiDetailView):
+class PlotTypeApiDetails(generics.RetrieveUpdateDestroyAPIView):
     
     queryset = PlotType.objects.all()
     serializer_class = PlotTypeSerializer
 
-class PlotNatureApiList(BaseApiListView):
+class PlotNatureApiList(generics.ListCreateAPIView):
 
     queryset = PlotNature.objects.all()
     serializer_class = PlotNatureSerializer
 
-class PlotNatureApiDetails(BaseApiDetailView):
+class PlotNatureApiDetails(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = PlotNature.objects.all()
     serializer_class = PlotNatureSerializer

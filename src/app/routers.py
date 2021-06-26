@@ -42,9 +42,9 @@ urlpatterns = [
     path('hearing/', HearingApiList.as_view(), name = 'api-hearing-list'),
     path('hearing/<slug:slug>/', HearingApiDetail.as_view(), name='api-hearing-detail'),
     path('plot-type/',PlotTypeApiList.as_view(), name ='api-plot_type-list'),
-    path('plot-type/<slug:pk>/', PlotTypeApiDetails.as_view(), name='api-plot_type-detial'),
+    path('plot-type/<slug:pk>/', PlotTypeApiDetails.as_view(), name='api-plot_type-detail'),
     path('plot-nature/',PlotNatureApiList.as_view(), name ='api-plot_nature-list'),
-    path('plot-nature/<slug:pk>/', PlotNatureApiDetails.as_view(), name='api-plot_nature-detial'),
+    path('plot-nature/<slug:pk>/', PlotNatureApiDetails.as_view(), name='api-plot_nature-detail'),
 
 ]
 
