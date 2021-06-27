@@ -53,7 +53,7 @@ class AuthTokenSerializer(Serializer):
 
         user = authenticate(
             request=self.context.get('request'),
-            username = username,
+            username = username.upper(),
             password = password,
         )
 
