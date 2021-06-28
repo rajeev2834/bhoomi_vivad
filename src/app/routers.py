@@ -21,10 +21,12 @@ from .views import (
     PlotTypeApiDetails,
     PlotNatureApiList,
     PlotNatureApiDetails,
+    PlotDetailApiViewSet,
 )
 
 router = DefaultRouter()
 router.register('vivad', VivadDetailApiViewSet)
+router.register('plot', PlotDetailApiViewSet)
 
 urlpatterns = [
     path('create/',CreateUserApi.as_view(), name = 'api-create-user'),

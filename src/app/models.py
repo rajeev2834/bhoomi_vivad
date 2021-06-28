@@ -9,6 +9,14 @@ from django.db import models
 from phone_field import PhoneField
 from django.conf import settings
 
+import uuid
+import os
+
+def plot_image_file_path(instance, filename):
+
+    ext = filename.split('.')[-1]
+    filename = f'{uuid.uuid4()}.{ext}'
+    return os.path.join('uploads/plot/', filename)
 
 class Circle(models.Model):
     circle_id = models.CharField(primary_key=True, max_length=3)
@@ -107,16 +115,11 @@ class PlotNature(models.Model):
     def __str__(self):
         return self.plot_nature
 
-
-class Vivad(models.Model):
-    CASE_STATUS =(
-        (0,"Pending"),
-        (1,"Closed"),
-    )
-
-    vivad_id = models.CharField(primary_key=True, max_length=12)
+class PlotDetail(models.Model):
+    plot_id = models.AutoField(primary_key=True)
     circle = models.ForeignKey(Circle, models.DO_NOTHING, blank=True, null=True)
     panchayat = models.ForeignKey(Panchayat, models.DO_NOTHING, blank=True, null=True)
+    mauza = models.ForeignKey(Mauza, models.DO_NOTHING, blank=True, null=True)
     thana_no = models.CharField(max_length=4, blank=True, null=True)
     khata_no = models.CharField(max_length=10, blank=True, null=True)
     khesra_no = models.CharField(max_length=10, blank=True, null=True)
@@ -124,6 +127,30 @@ class Vivad(models.Model):
     chauhaddi = models.CharField(max_length=100, blank=True, null=True)
     plot_type = models.ForeignKey(PlotType, models.DO_NOTHING, blank=True, null=True)
     plot_nature = models.ForeignKey(PlotNature, models.DO_NOTHING, blank=True, null=True)
+    latitude = models.DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
+    image = models.ImageField(blank=True, null=True, upload_to=plot_image_file_path)
+    last_update = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'plot_detail'
+        ordering = ["plot_id"]
+
+    def __str__(self):
+        return f"{self.plot_id}"
+
+
+class Vivad(models.Model):
+    CASE_STATUS =(
+        (0,"Pending"),
+        (1,"Closed"),
+    )
+
+    vivad_id = models.AutoField(primary_key=True)
+    circle = models.ForeignKey(Circle, models.DO_NOTHING, blank=True, null=True)
+    panchayat = models.ForeignKey(Panchayat, models.DO_NOTHING, blank=True, null=True)
+    thana_no = models.CharField(max_length=4, blank=True, null=True)
+    plot = models.ForeignKey(PlotDetail, models.DO_NOTHING, blank=True, null=True)
     abhidhari_name = models.CharField(max_length=50, blank=True, null=True)
     first_party_name = models.TextField(max_length=50, blank=True)
     first_party_contact = PhoneField(blank=True, help_text='Contact phone number')
@@ -159,6 +186,8 @@ class Vivad(models.Model):
 class Hearing(models.Model):
     vivad = models.ForeignKey(Vivad, on_delete=models.CASCADE, null=True)
     hearing_date = models.DateTimeField(blank=True)
+    is_first_present = models.BooleanField(max_length=1, default=False, blank=True)
+    is_second_present = models.BooleanField(max_length=1, default=False, blank=True)
     remarks = models.TextField(max_length=200, blank=True)
 
     class Meta:

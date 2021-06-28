@@ -6,7 +6,7 @@ volumes:
 
 services:
   postgres:
-    image: postgres
+    image: postgis/postgis
     env_file: ./.docker-env
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Circle, Panchayat, Mauza, Thana, Vivad, Hearing, PlotNature, PlotType
+from .models import Circle, Panchayat, Mauza, PlotDetail, Thana, Vivad, Hearing, PlotNature, PlotType, PlotDetail
 
 @admin.register(Circle)
 class CircleAdmin(admin.ModelAdmin):
@@ -43,4 +43,7 @@ class PlotNatureAdmin(admin.ModelAdmin):
 
     list_display = ("id", "plot_nature")
     
+@admin.register(PlotDetail)
+class PlotDetailAdmin(admin.ModelAdmin):
 
+    list_display = ("plot_id", "khata_no", "khesra_no","rakwa")

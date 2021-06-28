@@ -18,6 +18,7 @@ from .models import (
     Hearing,
     PlotType,
     PlotNature,
+    PlotDetail,
 )
 
 class UserSerializer(ModelSerializer):
@@ -151,6 +152,41 @@ class PlotNatureSerializer(ModelSerializer):
         fields = ('id', 'plot_nature', 'url',)
         read_only = ('id',)
 
+class PlotDetailSerializer(ModelSerializer):
+
+    circle = serializers.PrimaryKeyRelatedField(
+        queryset = Circle.objects.all()
+    )
+
+    panchayat = serializers.PrimaryKeyRelatedField(
+        queryset = Panchayat.objects.all()
+    )
+
+    mauza = serializers.PrimaryKeyRelatedField(
+        queryset = Mauza.objects.all()
+    )
+
+    url = HyperlinkedIdentityField(
+        view_name = "api-plot-detail"
+    )
+
+    class Meta:
+        model = PlotDetail
+        fields = ("__all__")
+        read_only = ('plot_id',)
+
+class PlotWithDetailSerializer(PlotDetailSerializer):
+    circle = CircleSerializer(read_only = True)
+    panchayat = PanchayatSerializer(read_only = True)
+    mauza =  MauzaSerializer(read_only = True)
+
+class PlotImageSerializer(ModelSerializer):
+
+    class Meta:
+        model = PlotDetail
+        fields = ('plot_id','image',)
+        read_only_fields = ('plot_id',)
+
 
 class VivadSerializer(ModelSerializer):
 
@@ -166,6 +202,10 @@ class VivadSerializer(ModelSerializer):
         queryset = Mauza.objects.all()
     )
 
+    plot = serializers.PrimaryKeyRelatedField(
+        queryset = PlotDetail.objects.all()
+    )
+
     url = HyperlinkedIdentityField(
         view_name = "api-vivad-detail"
     )
@@ -179,6 +219,7 @@ class VivadWithDetailSerializer(VivadSerializer):
     circle = CircleSerializer(read_only = True)
     panchayat = PanchayatSerializer(read_only = True)
     mauza =  MauzaSerializer(read_only = True)
+    plot = PlotDetailSerializer(read_only = True)
 
 
 class HearingSerilaizer(ModelSerializer):
