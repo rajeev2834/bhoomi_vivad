@@ -28,6 +28,7 @@ router = DefaultRouter()
 router.register('vivad', VivadDetailApiViewSet)
 router.register('plot', PlotDetailApiViewSet)
 
+
 urlpatterns = [
     path('create/',CreateUserApi.as_view(), name = 'api-create-user'),
     path('manage/',ManageUserApi.as_view(), name = 'api-manage-user'),

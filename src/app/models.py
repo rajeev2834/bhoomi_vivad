@@ -8,15 +8,17 @@
 from django.db import models
 from phone_field import PhoneField
 from django.conf import settings
+from django.utils.timezone import now
 
 import uuid
 import os
 
 def plot_image_file_path(instance, filename):
 
-    ext = filename.split('.')[-1]
-    filename = f'{uuid.uuid4()}.{ext}'
-    return os.path.join('uploads/plot/', filename)
+    if filename :
+        ext = filename.split('.')[-1]
+        filename = f'{uuid.uuid4()}.{ext}'
+        return os.path.join('uploads/plot/', filename)
 
 class Circle(models.Model):
     circle_id = models.CharField(primary_key=True, max_length=3)
@@ -32,7 +34,7 @@ class Circle(models.Model):
     class Meta:
         db_table = 'circle'
         ordering = ["circle_id"]
-    
+
     def __str__(self):
         return f"{self.circle_name_hn}"
 
@@ -115,31 +117,6 @@ class PlotNature(models.Model):
     def __str__(self):
         return self.plot_nature
 
-class PlotDetail(models.Model):
-    plot_id = models.AutoField(primary_key=True)
-    circle = models.ForeignKey(Circle, models.DO_NOTHING, blank=True, null=True)
-    panchayat = models.ForeignKey(Panchayat, models.DO_NOTHING, blank=True, null=True)
-    mauza = models.ForeignKey(Mauza, models.DO_NOTHING, blank=True, null=True)
-    thana_no = models.CharField(max_length=4, blank=True, null=True)
-    khata_no = models.CharField(max_length=10, blank=True, null=True)
-    khesra_no = models.CharField(max_length=10, blank=True, null=True)
-    rakwa = models.CharField(max_length=5, blank=True, null=True)
-    chauhaddi = models.CharField(max_length=100, blank=True, null=True)
-    plot_type = models.ForeignKey(PlotType, models.DO_NOTHING, blank=True, null=True)
-    plot_nature = models.ForeignKey(PlotNature, models.DO_NOTHING, blank=True, null=True)
-    latitude = models.DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
-    longitude = models.DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
-    image = models.ImageField(blank=True, null=True, upload_to=plot_image_file_path)
-    last_update = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        db_table = 'plot_detail'
-        ordering = ["plot_id"]
-
-    def __str__(self):
-        return f"{self.plot_id}"
-
-
 class Vivad(models.Model):
     CASE_STATUS =(
         (0,"Pending"),
@@ -147,10 +124,10 @@ class Vivad(models.Model):
     )
 
     vivad_id = models.AutoField(primary_key=True)
+    vivad_uuid = models.UUIDField(editable=False, unique=True, default=uuid.uuid4)
     circle = models.ForeignKey(Circle, models.DO_NOTHING, blank=True, null=True)
     panchayat = models.ForeignKey(Panchayat, models.DO_NOTHING, blank=True, null=True)
     thana_no = models.CharField(max_length=4, blank=True, null=True)
-    plot = models.ForeignKey(PlotDetail, models.DO_NOTHING, blank=True, null=True)
     abhidhari_name = models.CharField(max_length=50, blank=True, null=True)
     first_party_name = models.TextField(max_length=50, blank=True)
     first_party_contact = PhoneField(blank=True, help_text='Contact phone number')
@@ -166,9 +143,10 @@ class Vivad(models.Model):
     is_courtpending = models.BooleanField(max_length=1, default=False, blank=True)
     court_status = models.CharField(max_length=200, blank=True, null=True)
     case_status = models.BooleanField(choices=CASE_STATUS, default=0)
+    register_date = models.DateTimeField(blank=True, null=True)
     next_date = models.DateTimeField(blank=True, null=True)
     remarks = models.CharField(max_length=200, blank=True, null=True)
-    last_update = models.DateTimeField(blank=True, null=True)
+    last_update = models.DateTimeField(auto_now_add=True, blank=True)
     mauza = models.ForeignKey(Mauza, models.DO_NOTHING, blank=True, null=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -183,8 +161,41 @@ class Vivad(models.Model):
     def __str__(self):
         return f"{self.vivad_id}"
 
+class PlotDetail(models.Model):
+    plot_id = models.AutoField(primary_key=True)
+    plot_uuid = models.UUIDField(editable=False, unique=True, default=uuid.uuid4)
+    circle = models.ForeignKey(Circle, models.DO_NOTHING, blank=True, null=True)
+    panchayat = models.ForeignKey(Panchayat, models.DO_NOTHING, blank=True, null=True)
+    mauza = models.ForeignKey(Mauza, models.DO_NOTHING, blank=True, null=True)
+    thana_no = models.CharField(max_length=4, blank=True, null=True)
+    khata_no = models.CharField(max_length=10, blank=True, null=True)
+    khesra_no = models.CharField(max_length=10, blank=True, null=True)
+    rakwa = models.CharField(max_length=5, blank=True, null=True)
+    chauhaddi = models.CharField(max_length=100, blank=True, null=True)
+    plot_type = models.ForeignKey(PlotType, models.DO_NOTHING, blank=True, null=True)
+    plot_nature = models.ForeignKey(PlotNature, models.DO_NOTHING, blank=True, null=True)
+    vivad = models.ForeignKey(Vivad, to_field='vivad_uuid', db_column='vivad', on_delete=models.DO_NOTHING, null=True, blank=True)
+    is_govtPlot = models.BooleanField(max_length=1, default=False, blank=True)
+    latitude = models.DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
+    image = models.ImageField(blank=True, null=True, upload_to=plot_image_file_path)
+    remarks = models.CharField(max_length=200, blank=True, null=True)
+    last_update = models.DateTimeField()
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete= models.DO_NOTHING,
+        null=True
+    )
+
+    class Meta:
+        db_table = 'plot_detail'
+        ordering = ["plot_id"]
+
+    def __str__(self):
+        return f"{self.plot_id}"
+
 class Hearing(models.Model):
-    vivad = models.ForeignKey(Vivad, on_delete=models.CASCADE, null=True)
+    vivad = models.ForeignKey(Vivad, to_field='vivad_uuid', db_column='vivad', on_delete=models.CASCADE, null=True, blank=True)
     hearing_date = models.DateTimeField(blank=True)
     is_first_present = models.BooleanField(max_length=1, default=False, blank=True)
     is_second_present = models.BooleanField(max_length=1, default=False, blank=True)
@@ -192,4 +203,4 @@ class Hearing(models.Model):
 
     class Meta:
         db_table = 'hearing'
-        ordering = ["vivad", "-hearing_date"]
+        ordering = ["-hearing_date"]

@@ -31,7 +31,7 @@ class VivadAdmin(admin.ModelAdmin):
 @admin.register(Hearing)
 class HearingAdmin(admin.ModelAdmin):
 
-    list_display = ("vivad", "hearing_date", "remarks" )
+    list_display = ("hearing_date", "remarks" )
 
 @admin.register(PlotType)
 class PlotTypeAdmin(admin.ModelAdmin):

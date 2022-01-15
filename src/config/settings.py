@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1',
 'localhost',
-'192.168.1.35',]
+'192.168.1.35', '192.168.1.5']
 
 
 # Application definition
@@ -95,6 +95,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
         ],
     'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
         ]

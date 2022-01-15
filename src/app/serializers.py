@@ -5,6 +5,7 @@ from rest_framework.serializers import (
     ValidationError,
     CharField,
 )
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework.authtoken.models import Token
@@ -25,7 +26,7 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ('username','password','first_name')
+        fields = ('id','password','first_name')
         extra_kwargs = {'password': {'write_only': True, 'min_length': 8}}
 
     def create(self,validated_data):
@@ -38,7 +39,7 @@ class UserSerializer(ModelSerializer):
         if password:
             user.set_password(password)
             user.save()
-        
+
         return user
 
 class AuthTokenSerializer(Serializer):
@@ -66,7 +67,7 @@ class AuthTokenSerializer(Serializer):
 
         if not attrs:
             attrs = Token.objects.create(user=user)
-            
+
         return attrs
 
 class CircleSerializer(ModelSerializer):
@@ -77,7 +78,7 @@ class CircleSerializer(ModelSerializer):
 
     class Meta:
         model = Circle
-        fields = ('circle_id','circle_name_hn','url')
+        fields = ('circle_id','circle_name_hn','user', 'url')
         read_only_fields = ('circle_id',)
 
 class PanchayatSerializer(ModelSerializer):
@@ -97,6 +98,7 @@ class PanchayatSerializer(ModelSerializer):
 
 class MauzaSerializer(ModelSerializer):
 
+
     circle = serializers.PrimaryKeyRelatedField(
         queryset = Circle.objects.all()
     )
@@ -111,9 +113,8 @@ class MauzaSerializer(ModelSerializer):
 
     class Meta:
         model = Mauza
-        fields = ('circle','panchayat','mauza_name_hn','url',)
+        fields = ('mauza_id','circle','panchayat','mauza_name_hn','url')
         read_only = ('mauza_id',)
-
 
 class ThanaSerializer(ModelSerializer):
 
@@ -127,7 +128,7 @@ class ThanaSerializer(ModelSerializer):
 
     class Meta:
         model = Thana
-        fields = ('circle','thana_name_hn','url',)
+        fields = ('thana_id','circle','thana_name_hn','url',)
         read_only = ('thana_id',)
 
 class PlotTypeSerializer(ModelSerializer):
@@ -154,6 +155,8 @@ class PlotNatureSerializer(ModelSerializer):
 
 class PlotDetailSerializer(ModelSerializer):
 
+    id = serializers.IntegerField(required=False)
+
     circle = serializers.PrimaryKeyRelatedField(
         queryset = Circle.objects.all()
     )
@@ -166,14 +169,11 @@ class PlotDetailSerializer(ModelSerializer):
         queryset = Mauza.objects.all()
     )
 
-    url = HyperlinkedIdentityField(
-        view_name = "api-plot-detail"
-    )
 
     class Meta:
         model = PlotDetail
         fields = ("__all__")
-        read_only = ('plot_id',)
+        read_only = ('vivad')
 
 class PlotWithDetailSerializer(PlotDetailSerializer):
     circle = CircleSerializer(read_only = True)
@@ -186,7 +186,6 @@ class PlotImageSerializer(ModelSerializer):
         model = PlotDetail
         fields = ('plot_id','image',)
         read_only_fields = ('plot_id',)
-
 
 class VivadSerializer(ModelSerializer):
 
@@ -202,9 +201,7 @@ class VivadSerializer(ModelSerializer):
         queryset = Mauza.objects.all()
     )
 
-    plot = serializers.PrimaryKeyRelatedField(
-        queryset = PlotDetail.objects.all()
-    )
+    plots = PlotDetailSerializer(many=True)
 
     url = HyperlinkedIdentityField(
         view_name = "api-vivad-detail"
@@ -215,6 +212,13 @@ class VivadSerializer(ModelSerializer):
         fields = ("__all__")
         read_only = ('vivad_id',)
 
+    def create(self, validated_data):
+        plots = validated_data.pop('plots')
+        vivad = Vivad.objects.create(**validated_data)
+        for plot in plots:
+            PlotDetail.objects.create(**plots, vivad = vivad)
+        return vivad
+
 class VivadWithDetailSerializer(VivadSerializer):
     circle = CircleSerializer(read_only = True)
     panchayat = PanchayatSerializer(read_only = True)
@@ -223,7 +227,7 @@ class VivadWithDetailSerializer(VivadSerializer):
 
 
 class HearingSerilaizer(ModelSerializer):
-    vivad = serializers.PrimaryKeyRelatedField(
+    vivad = serializers.RelatedField(
         queryset = Vivad.objects.all()
     )
 

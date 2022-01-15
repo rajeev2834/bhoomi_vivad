@@ -1,4 +1,3 @@
-from django.views.generic.base import View
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,13 +6,14 @@ from rest_framework import generics, authentication, permissions, status, viewse
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
 
-from django.contrib.auth import get_user_model, logout
+
+from django.contrib.auth import get_user_model
+from django.http import JsonResponse
 
 from .models import (
     Circle,
     Panchayat,
     Mauza,
-    PlotDetail,
     Thana,
     Vivad,
     Hearing,
@@ -39,25 +39,23 @@ from .serializers import (
     PlotImageSerializer,
 )
 
+import logging
+
 class BaseApiListView(generics.ListCreateAPIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
 
-    def _params_to_ints(self, qs):
-        
-        return [int(str_id) for str_id in qs.split(',')]
 
     def get_queryset(self):
         queryset = self.queryset
-
         if queryset.model is Mauza:
             circle = self.request.query_params.get('circle')
             panchayat = self.request.query_params.get('panchayat')
-            
+
             if circle:
                 circle_ids = [str_id for str_id in circle.split(',')]
                 queryset = queryset.filter(circle__circle_id__in=circle_ids)
-        
+
             if panchayat:
                 panchayat_ids = [str_id for str_id in panchayat.split(',')]
                 queryset = queryset.filter(panchayat__panchayat_id__in=panchayat_ids)
@@ -86,9 +84,9 @@ class BaseApiDetailView(generics.RetrieveUpdateDestroyAPIView):
         is_super = self.request.user.is_superuser
         if is_super:
             return self.queryset.all()
-            
+
         return self.queryset.filter(user=self.request.user).distinct()
-    
+
     def perform_update(self, serializer):
         return serializer.save(user=self.request.user)
 
@@ -151,76 +149,13 @@ class ThanaApiDetail(BaseApiDetailView):
     queryset = Thana.objects.all()
     serializer_class = ThanaSerializer
 
-class PlotDetailApiViewSet(viewsets.ModelViewSet):
-
-    queryset = PlotDetail.objects.all()
-    serializer_class = PlotDetailSerializer
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return PlotWithDetailSerializer
-        elif self.action == 'upload_image':
-            return PlotImageSerializer
-        
-        return self.serializer_class
-
-    @action(methods=['POST'], detail=True, url_path='image')
-    def upload_image(self, request, pk=None):
-        plot = self.get_object()
-        serializer = self.get_serializer(
-            plot,
-            data=request.data
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK
-            )
-        
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    def _params_to_ints(self, qs):
-
-        return [int(str_id) for str_id in qs.split(',')]
-
-
-    def get_queryset(self):
-        circle = self.request.query_params.get('circle')
-        panchayat = self.request.query_params.get('panchayat')
-        mauza = self.request.query_params.get('mauza')
-        queryset = self.queryset
-
-        if circle:
-            circle_ids = [str_id for str_id in circle.split(',')]
-            queryset = queryset.filter(circle__circle_id__in=circle_ids)
-        
-        if panchayat:
-            panchayat_ids = [str_id for str_id in panchayat.split(',')]
-            queryset = queryset.filter(halka_id__halka_id__in=panchayat_ids)
-
-        if mauza:
-            mauza_ids = self._params_to_ints(mauza)
-            queryset = queryset.filter(mauza__mauza_id__in=mauza_ids)
-        
-        return queryset.filter().order_by('plot_id')
-
-    def perform_create(self, serializer):
-        return serializer.save(user=self.request.user)
-
 class PlotTypeApiList(generics.ListCreateAPIView):
 
     queryset = PlotType.objects.all()
     serializer_class = PlotTypeSerializer
 
 class PlotTypeApiDetails(generics.RetrieveUpdateDestroyAPIView):
-    
+
     queryset = PlotType.objects.all()
     serializer_class = PlotTypeSerializer
 
@@ -233,6 +168,76 @@ class PlotNatureApiDetails(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = PlotNature.objects.all()
     serializer_class = PlotNatureSerializer
+
+class PlotDetailApiViewSet(viewsets.ModelViewSet):
+
+    queryset = PlotDetail.objects.all()
+    serializer_class = PlotDetailSerializer
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return PlotWithDetailSerializer
+        elif self.action == 'upload_image':
+            return PlotImageSerializer
+
+        return self.serializer_class
+
+
+    @action(methods=['POST'], detail=True, url_path='upload-image')
+    def upload_image(self, request, pk=None):
+        plot = self.get_object()
+        serializer = self.get_serializer(
+            plot,
+            data=request.data,
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    def _params_to_ints(self, qs):
+
+        return [int(str_id) for str_id in qs.split(',')]
+
+
+    def get_queryset(self):
+        circle = self.request.query_params.get('circle')
+        panchayat = self.request.query_params.get('panchayat')
+        mauza = self.request.query_params.get('mauza')
+        vivad = self.request.query_params.get('vivad')
+        queryset = self.queryset
+
+        if circle:
+            circle_ids = [str_id for str_id in circle.split(',')]
+            queryset = queryset.filter(circle__circle_id__in=circle_ids)
+
+        if panchayat:
+            panchayat_ids = [str_id for str_id in panchayat.split(',')]
+            queryset = queryset.filter(panchayat_id__panchayat_id__in=panchayat_ids)
+
+        if mauza:
+            mauza_ids = self._params_to_ints(mauza)
+            queryset = queryset.filter(mauza__mauza_id__in=mauza_ids)
+        
+        if vivad:
+            vivad_ids = [str_id for str_id in vivad.split(',')]
+            queryset = queryset.filter(vivad__vivad_id__in=vivad_ids)
+
+        return queryset.filter().order_by('plot_id')
+
+    def perform_create(self, serializer):
+        return serializer.save(user = self.request.user)
+
 
 class VivadDetailApiViewSet(viewsets.ModelViewSet):
 
@@ -249,20 +254,19 @@ class VivadDetailApiViewSet(viewsets.ModelViewSet):
 
     def _params_to_ints(self, qs):
 
-         return [int(str_id) for str_id in qs.split(',')]
+        return [int(str_id) for str_id in qs.split(',')]
 
 
     def get_queryset(self):
         circle = self.request.query_params.get('circle')
         panchayat = self.request.query_params.get('panchayat')
         mauza = self.request.query_params.get('mauza')
-        plot = self.request.query_params.get('plot')
         queryset = self.queryset
 
         if circle:
             circle_ids = [str_id for str_id in circle.split(',')]
             queryset = queryset.filter(circle__circle_id__in=circle_ids)
-        
+
         if panchayat:
             panchayat_ids = [str_id for str_id in panchayat.split(',')]
             queryset = queryset.filter(panchayat__panchayat_id__in=panchayat_ids)
@@ -271,11 +275,7 @@ class VivadDetailApiViewSet(viewsets.ModelViewSet):
             mauza_ids = self._params_to_ints(mauza)
             queryset = queryset.filter(mauza__mauza_id__in=mauza_ids)
 
-        if plot:
-            plot_ids = self._params_to_ints(plot)
-            queryset = queryset.filter(plot__plot_id__in=plot_ids)
 
-        
         return queryset.filter(user=self.request.user).order_by('vivad_id')
 
     def perform_create(self, serializer):
@@ -291,7 +291,7 @@ class HearingApiList(generics.ListCreateAPIView):
 
         if vivad:
             vivad_ids = [str_id for str_id in vivad.split(',')]
-            queryset = queryset.filter(vivad__vivad_id__in=vivad_ids)
+            queryset = queryset.filter(vivad__vivad_uuid__in=vivad_ids)
 
         return queryset.all()
 
